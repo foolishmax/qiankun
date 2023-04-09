@@ -54,12 +54,15 @@ const isSlowNetwork = navigator.connection
  * @param opts
  */
 function prefetch(entry: Entry, opts?: ImportEntryOpts): void {
+  // 断网或者慢网退出
   if (!navigator.onLine || isSlowNetwork) {
     // Don't prefetch if in a slow network or offline
     return;
   }
 
+  // 浏览器空闲时加载
   requestIdleCallback(async () => {
+    // 预加载入口文件，替代systemjs->import-html-entry
     const { getExternalScripts, getExternalStyleSheets } = await importEntry(entry, opts);
     requestIdleCallback(getExternalStyleSheets);
     requestIdleCallback(getExternalScripts);
