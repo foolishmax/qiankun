@@ -74,6 +74,7 @@ function createElement(
   containerElement.innerHTML = appContent;
   // appContent always wrapped with a singular div
   const appElement = containerElement.firstChild as HTMLElement;
+  // 如果是严格样式隔离，采用shadowDom
   if (strictStyleIsolation) {
     if (!supportShadowDOM) {
       console.warn(
@@ -94,6 +95,7 @@ function createElement(
     }
   }
 
+  // 如果是作用域css，拿到所有的style标签，为样式添加css前缀，对于link标签，会将link转换为style
   if (scopedCSS) {
     const attr = appElement.getAttribute(css.QiankunCSSRewriteAttr);
     if (!attr) {
@@ -249,6 +251,7 @@ export async function loadApp<T extends ObjectType>(
   const { entry, name: appName } = app;
   const appInstanceId = genAppInstanceIdByName(appName);
 
+  // 给当前应用加载起名字
   const markName = `[qiankun] App ${appInstanceId} Loading`;
   if (process.env.NODE_ENV === 'development') {
     performanceMark(markName);
@@ -274,6 +277,7 @@ export async function loadApp<T extends ObjectType>(
     await (prevAppUnmountedDeferred && prevAppUnmountedDeferred.promise);
   }
 
+  // 获取文件内容，对模版进行处理
   const appContent = getDefaultTplWrapper(appInstanceId, sandbox)(template);
 
   const strictStyleIsolation = typeof sandbox === 'object' && !!sandbox.strictStyleIsolation;
@@ -317,6 +321,7 @@ export async function loadApp<T extends ObjectType>(
   const speedySandbox = typeof sandbox === 'object' ? sandbox.speedy !== false : true;
   let sandboxContainer;
   if (sandbox) {
+    // 创建沙箱容器
     sandboxContainer = createSandboxContainer(
       appInstanceId,
       // FIXME should use a strict sandbox logic while remount, see https://github.com/umijs/qiankun/issues/518

@@ -26,6 +26,7 @@ const frameworkStartedDefer = new Deferred<void>();
 const autoDowngradeForLowVersionBrowser = (configuration: FrameworkConfiguration): FrameworkConfiguration => {
   const { sandbox = true, singular } = configuration;
   if (sandbox) {
+    // 不支持proxy时，采用快照沙箱
     if (!window.Proxy) {
       console.warn('[qiankun] Missing window.Proxy, proxySandbox will degenerate into snapshotSandbox');
 
@@ -61,13 +62,16 @@ export function registerMicroApps<T extends ObjectType>(
   lifeCycles?: FrameworkLifeCycles<T>,
 ) {
   // Each app only needs to be registered once
+  // 通过name属性拿到所有未被注册过的应用
   const unregisteredApps = apps.filter((app) => !microApps.some((registeredApp) => registeredApp.name === app.name));
 
+  // 所有要注册的应用
   microApps = [...microApps, ...unregisteredApps];
 
   unregisteredApps.forEach((app) => {
     const { name, activeRule, loader = noop, props, ...appConfig } = app;
 
+    // 注册使用的逻辑采用的是single-spa（路由劫持）
     registerApplication({
       name,
       app: async () => {
@@ -79,6 +83,7 @@ export function registerMicroApps<T extends ObjectType>(
         )();
 
         return {
+          // 返回应用的接入协议
           mount: [async () => loader(true), ...toArray(mount), async () => loader(false)],
           ...otherMicroAppConfigs,
         };
